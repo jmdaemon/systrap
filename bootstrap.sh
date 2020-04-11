@@ -3,8 +3,6 @@
 
 REQ_LIST=req
 
-wifi-menu           # Setup wireless connection
-ping google.com     # Test connection
 timedatectl set-ntp true  # Ensure sys clock is accurate
 
 # Partition disks

@@ -3,7 +3,6 @@
 # This script is intended to be run during/after initial installation 
 
 PKG=pkg
-LAP=lap
 AUR=aur
 # AUR=$HOME/aur
 # Install all our packages
@@ -36,4 +35,3 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/mas
 # P10k
 pacman -Sy --noconfirm zsh-theme-powerlevel10k
 echo 'source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme' >>! ~/.zshrc
-
