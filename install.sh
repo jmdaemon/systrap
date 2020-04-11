@@ -35,3 +35,9 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/mas
 # P10k
 pacman -Sy --noconfirm zsh-theme-powerlevel10k
 echo 'source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme' >>! ~/.zshrc
+
+newgrp docker
+sudo usermod -aG docker jmd
+sudo systemctl enable docker
+sudo systemctl enable org.cups.cupsd.service 
+sudo systemctl enable bluetooth
