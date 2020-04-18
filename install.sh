@@ -116,12 +116,14 @@ conda install -c pytorch -c fastai fastai pytorch
 #pip install -e .
 
 
+#pip install jupyter_contrib_nbextensions
+pip3 install jupyter_contrib_nbextensions
+
 jupyter notebook --generate-config
 cat << 'EOF' >> ~/.jupyter/jupyter_notebook_config.py
 c.NotebookApp.open_browser = False
 #c.NotebookApp.token = ''
 EOF
-pip install jupyter_contrib_nbextensions
 jupyter contrib nbextension install --user
 jupyter nbextension enable collapsible_headings/main
 mkdir ~/.jupyter/custom
@@ -154,6 +156,8 @@ git clone https://github.com/fastai/fastai_docs.git
 cd fastai_docs/
 jupyter notebook
 
+# Timedatectl
+sudo timedatectl set-timezone Canada/Pacific
 
 # Nerd Fonts
 cd ~/git/
