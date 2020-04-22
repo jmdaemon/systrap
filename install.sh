@@ -1,47 +1,45 @@
 #!/bin/bash
 
-# Install apt-fast
+PKG=pkg # Packages
+DLP=dlp # DL Packages
+
+sys=ubuntu-workstation
+# Repositories
 sudo add-apt-repository -y ppa:apt-fast/stable
 sudo add-apt-repository -y ppa:graphics-drivers/ppa
-sudo apt-get update
-sudo apt-get -y install apt-fast
+sudo apt update
+sudo apt install -y apt-fast
 # prompts
 
 sudo apt-fast -y upgrade
 
 # Install DL Libraries
-sudo apt-fast install -y python3-pip ubuntu-drivers-common libvorbis-dev libflac-dev libsndfile-dev cmake build-essential libgflags-dev libgoogle-glog-dev libgtest-dev google-mock zlib1g-dev libeigen3-dev libboost-all-dev libasound2-dev libogg-dev libtool libfftw3-dev libbz2-dev liblzma-dev libgoogle-glog0v5 gcc-6 gfortran-6 g++-6 doxygen graphviz libsox-fmt-all parallel exuberant-ctags vim-nox python-powerline python3-pip ack lsyncd
-sudo apt-fast install -y tigervnc-standalone-server firefox mesa-common-dev
+cat $DLP | xargs sudo apt install -y
 
-cat << 'EOF' >> ~/.ssh/config
-Host *
-ServerAliveInterval 60
-StrictHostKeyChecking no
-Host github.com
-User git
-Port 22
-Hostname github.com
-TCPKeepAlive yes
-IdentitiesOnly yes
-EOF
-chmod 600 ~/.ssh/config
+# Install some of our packages
+cat packages.txt | xargs sudo apt-get install
 
-# Get dotfiles and configs
-git clone https://gitlab.com/JMD_/systrap ~/.systrap -b ubuntu-workstation
-git clone --bare https://gitlab.com/JMD_/dotfiles $HOME/.cfg -b ubuntu-workstation
+# Install basics: desktop environment, and login-manager 
+sudo apt-fast install -y xfce4 xfce4-goodies xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings zsh tmux fortune-mod cowsay
+
+# Configure system
+git clone https://gitlab.com/JMD_/systrap ~/.systrap -b $sys
+git clone --bare https://gitlab.com/JMD_/dotfiles $HOME/.cfg -b $sys
 git submodule add -f https://gitlab.com/JMD_/backgrounds ~/backgrounds
+
 function config {
    /usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME $@
 }
-mkdir -p .config-backup
-config checkout
+
+mkdir -p ~/.config-backup
+config checkout $sys
 if [ $? = 0 ]; then
   echo "Checked out config.";
   else
     echo "Backing up pre-existing dot files.";
     config checkout 2>&1 | egrep "\s+\." | awk {'print $1'} | xargs -I{} mv {} .config-backup/{}
 fi;
-config checkout
+config checkout $sys
 config config status.showUntrackedFiles no
 
 
@@ -55,9 +53,6 @@ nvidia-smi
 
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6   40 --slave /usr/bin/g++ g++ /usr/bin/g++-6 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-6
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7   40 --slave /usr/bin/g++ g++ /usr/bin/g++-7 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-7
-
-# Install desktop environment, and login-manager 
-sudo apt-fast install -y xfce4 xfce4-goodies xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings zsh tmux fortune-mod cowsay
 
 # Cuda
 mkdir -p ~/download
@@ -93,16 +88,6 @@ sudo snap install hub --classic
 
 
 # Add to ~/.zshrc, .bashrc
-#cat << 'EOF' >> ~/.bashrc
-#alias git=hub
-#alias gpr='git pull-request -m "$(git log -1 --pretty=%B)"'
-#clonefork() {
-#hub clone "$1"
-#cd "${1##*/}"
-#hub fork
-#}
-#EOF
-#source ~/.bashrc
 
 conda install -c pytorch -c fastai fastai pytorch
 
@@ -156,7 +141,7 @@ git clone https://github.com/fastai/fastai_docs.git
 cd fastai_docs/
 jupyter notebook
 
-# Timedatectl
+# Configure clock for local time zone (Canada/Pacific)
 sudo timedatectl set-timezone Canada/Pacific
 
 # Nerd Fonts
