@@ -1,6 +1,8 @@
 #!/bin/bash
 
+
 # Configure system
+sys=ubuntu-workstation
 git clone https://gitlab.com/JMD_/systrap ~/.systrap -b $sys
 git clone --bare https://gitlab.com/JMD_/dotfiles $HOME/.cfg -b $sys
 git submodule add -f https://gitlab.com/JMD_/backgrounds ~/backgrounds
