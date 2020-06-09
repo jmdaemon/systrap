@@ -1,20 +1,11 @@
 #!/bin/bash
 
-# This script is intended to be run during/after initial installation 
+# Run this script after the base system is installed. See ./bootstrap.sh
 
-PKG=pkg
+PKG=pkg # Package lists
 AUR=aur
-# AUR=$HOME/aur
-# Install all our packages
 
-# Parse *.pkg.list
 sudo pacman -S --needed  $(<$PKG)
-sudo pacman -S --needed  $(<$LAP)
-
-# Parse .csv file
-#while IFS=, read -r field2
-#do : sudo pacman -S --needed "$field2"
-#done < input.csv
 
 # Build yay AUR helper 
 mkdir -p ~/git && git clone https://aur.archlinux.org/yay.git
@@ -28,15 +19,11 @@ npm install -g vtop
 pip3 install --user pynvim kaggle websocket-client
 
 nvim +PlugInstall +qall # NeoViM Plugins
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" # Oh-my-zsh
+pacman -Sy --noconfirm zsh-theme-powerlevel10k # P10k
+#echo 'source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme' >>! ~/.zshrc
 
-# Oh-my-zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-
-# P10k
-pacman -Sy --noconfirm zsh-theme-powerlevel10k
-echo 'source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme' >>! ~/.zshrc
-
-newgrp docker
+newgrp docker # For docker
 sudo usermod -aG docker jmd
 sudo systemctl enable docker
 sudo systemctl enable org.cups.cupsd.service 

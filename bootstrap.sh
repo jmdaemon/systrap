@@ -1,84 +1,52 @@
 #!/bin/bash
-# ./bootstrap - Arch Laptop
 
-REQ_LIST=req
+REQ=req
 
 timedatectl set-ntp true  # Ensure sys clock is accurate
 
-# Partition disks
-# Make sure to make or set /home, /, swap, /boot/efi
+## Partition disks - Create or set: /, /boot/efi, /home, swap
 cfdisk
 
-# Format ext4 drives
+# Format ext4, and swap drives
 mkfs.ext4 /dev/sdX1
-
-# Format swap drive
 mkfs.swapon /dev/sdX2
 
-# Mount / and other drives on /mnt, /mnt/boot/efi, /home, etc
-mount /dev/sdX1 /mnt
+# Mount drives on /mnt, /mnt/boot/efi
+mount /dev/sdX1 /mnt # Don't try to auto partition from script
 
-# Edit the package mirror list using your editor
-# [editor] /etc/pacman.d/mirrorlist
-
+## Select Mirrors in /etc/pacman.d/mirrorlist
 # Auto Select the 6 fastest mirrors for Canada. Requires pacman-contrib
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 awk '/^## Canada$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1);}' /etc/pacman.d/mirrorlist.backup
 rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 
-# Install base packages
-pacstrap /mnt $(<arch.req.list)
-
-# Gen File system table and check for errors
-genfstab -U /mnt >> /mnt/etc/fstab
+pacstrap /mnt $(<$REQ)              # Install base packages
+genfstab -U /mnt >> /mnt/etc/fstab  # Gen fstab, check for errors
 nvim /mnt/etc/fstab
+arch-chroot /mnt                    # Chroot into system
+ln -sf /usr/share/zoneinfo/Canada/Pacific /etc/localtime # Set time zone (Canada/Pacific)
+hwclock --systohc                   # Adjust hardware clock for /etc/adjtime
 
-# Chroot into system
-arch-chroot /mnt
-
-# Set time zone with Region and City of your choice (Canada/Pacific)
-ln -sf /usr/share/zoneinfo/Canada/Pacific /etc/localtime
-
-# Generate /etc/adjtime
-hwclock --systohc
-
-# Localization
-# Uncomment en_US.UTF-8 UTF-8 and other needed locales in /etc/locale.gen, and generate them with
+## Localization - Select locales and generate en_US.UTF-8 UTF-8, etc in /etc/locale.gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf 
-# Alternative: localectl set-locale LANG=en_US.UTF-8
-locale-gen
+locale-gen                          # or do: localectl set-locale LANG=en_US.UTF-8
 
-# Networking
-# Create host name file
+## Networking - /etc/hosts/
 cat << 'EOF' >> /etc/hosts
 127.0.0.1	arch
 ::1		arch
 127.0.1.1	arch.localdomain arch 
 EOF
 
+passwd # Set root passwd
 
-# Set root passwd
-passwd
+usermod -mG wheel,audio,optical,storage,video jmd   # Make user, set groups - To remove group: gpasswd -d user group
+EDITOR=nvim visudo                                  # Uncomment "%wheel ALL=(ALL) ALL" in /etc/sudoers with visudo
+systemctl enable lightdm                            # Enable services
 
-# << Optional >>
-# Make and add user to groups
-# Note: If you make a mistake in adding user groups, you can remove them with
-# gpasswd -d user group
-usermod -mG wheel,audio,optical,storage,video jmd 
-
-# Uncomment out the wheel group in /etc/sudoers
-# "%wheel ALL=(ALL) ALL"
-# EDITOR=ED visudo 
-EDITOR=nvim visudo
-
-# Enable services
-systemctl enable lightdm
-
-# Install GRUB Bootloader
+# Install GRUB Bootloader for UEFI systems
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=grub
 grub-mkconfig -o /boot/grub/grub.cfg
 
-# Ctrl-d or exit out of chroot environment and unmount all partitions
-umount -R /mnt
-
+umount -R /mnt # Ctrl-d or exit out of chroot environment and unmount all partitions
 exit 
